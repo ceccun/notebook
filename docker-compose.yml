@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres
+    networks:
+      - internal
+    environment:
+      POSTGRES_DB: notebook
+      POSTGRES_USER: notebook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    restart: always
+
+networks:
+  internal:

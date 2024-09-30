@@ -1,0 +1,32 @@
+.container {
+	display: flex;
+	gap: 0;
+	justify-content: flex-start;
+	overflow: hidden;
+	width: 100%;
+	box-sizing: border-box;
+	height: fit-content;
+	border-radius: 8px;
+	background-color: var(--page-colour);
+	box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.inner {
+	display: flex;
+	padding: 16px;
+	box-sizing: border-box;
+	padding: 16px;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+}
+
+.glow {
+	background: linear-gradient(
+		0deg,
+		rgba(216, 101, 255, 1) 0%,
+		rgba(255, 0, 221, 1) 100%
+	);
+	width: 8px;
+	height: 100%;
+}

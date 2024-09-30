@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String         @id @default(uuid())
+  name      String
+  email     String         @unique
+  password  String
+  notebooks UserNotebook[]
+  keyStore  KeyStore[]
+}
+
+model KeyStore {
+  id         String @id @default(uuid())
+  User       User   @relation(fields: [userId], references: [id])
+  userId     String
+  privateKey String
+  publicKey  String
+
+  // The next key, in encrypted form.
+  key String
+}
+
+model UserNotebook {
+  id           String                   @id @default(uuid())
+  relationship UserNotebookRelationship @default(VIEWER)
+  User         User?                    @relation(fields: [userId], references: [id])
+  userId       String?
+  Notebook     Notebook?                @relation(fields: [notebookId], references: [id])
+  notebookId   String?
+}
+
+enum UserNotebookRelationship {
+  OWNER
+  COLLABORATOR
+  VIEWER
+}
+
+model Notebook {
+  id          String         @id @default(uuid())
+  users       UserNotebook[]
+  name        String
+  isEncrypted Boolean        @default(true)
+
+  rootFolder NotebookFolder[]
+}
+
+model NotebookFolder {
+  id String @id @default(uuid())
+
+  notebook   Notebook? @relation(fields: [notebookId], references: [id])
+  notebookId String?
+
+  parent   NotebookFolder? @relation(name: "FolderHierarchy", fields: [parentId], references: [id])
+  parentId String?
+
+  // Children and files
+  children NotebookFolder[] @relation(name: "FolderHierarchy")
+  files    NotebookFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NotebookFile {
+  id               String         @id @default(uuid())
+  parent           NotebookFolder @relation(fields: [notebookFolderId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  notebookFolderId String
+}

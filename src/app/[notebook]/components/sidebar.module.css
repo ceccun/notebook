@@ -1,0 +1,24 @@
+.sidebar {
+	background-color: var(--sidebar-colour);
+	border-right: solid 1px var(--separator-colour);
+	width: 350px;
+	height: 100vh;
+	display: flex;
+	padding: 16px;
+	gap: 16px;
+	box-sizing: border-box;
+	flex-direction: column;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	flex-direction: row;
+	width: 100%;
+}
+
+.actionStrip {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
