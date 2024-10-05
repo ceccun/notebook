@@ -50,8 +50,23 @@ model Notebook {
   users       UserNotebook[]
   name        String
   isEncrypted Boolean        @default(true)
+  keys        NotebookKey[]
 
   rootFolder NotebookFolder[]
+}
+
+model NotebookKey {
+  id String @id @default(uuid())
+
+  privateKey String
+  publicKey  String
+
+  Notebook   Notebook? @relation(fields: [notebookId], references: [id])
+  notebookId String?
+
+  // If the client can generate the same code, it can have access to the raw data of the notebook.
+  challenge          String
+  challengePlainText String
 }
 
 model NotebookFolder {
