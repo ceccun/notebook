@@ -17,6 +17,16 @@ model User {
   password  String
   notebooks UserNotebook[]
   keyStore  KeyStore[]
+  Tokens    Tokens[]
+}
+
+model Tokens {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id])
+  userId    String
 }
 
 model KeyStore {

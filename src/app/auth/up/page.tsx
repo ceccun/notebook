@@ -1,7 +1,17 @@
 "use client";
+import { AuthenticationErrors, ErrorLayout } from "@/const/errors";
 import { ArrowRight } from "lucide-react";
+import {
+	createMessage,
+	decrypt,
+	decryptKey,
+	encrypt,
+	generateKey,
+	readKey,
+	readMessage,
+	readPrivateKey,
+} from "openpgp";
 import React, { useRef } from "react";
-import { KeyGenerator } from "./components/key-generator";
 
 const SignUp = () => {
 	const formRef = useRef<HTMLFormElement>(null);
@@ -14,14 +24,14 @@ const SignUp = () => {
 				const form = e.currentTarget;
 				const formData = new FormData(form);
 
-				let [fullName, email, password, passwordConfirm] = [
-					formData.get("fullname") as string,
+				let fullName = formData.get("fullname") as string;
+				fullName = fullName.trim();
+
+				const [email, password, passwordConfirm] = [
 					formData.get("email") as string,
 					formData.get("password") as string,
 					formData.get("passwordconfirm") as string,
 				];
-
-				fullName = fullName.trim();
 
 				let valid = true;
 
@@ -53,7 +63,6 @@ const SignUp = () => {
 					method: "POST",
 					headers: {
 						contentType: "application/json",
-						accepts: "",
 					},
 					body: JSON.stringify({
 						fullName,
@@ -62,9 +71,90 @@ const SignUp = () => {
 					}),
 				});
 
-				if (createReq.status == 200) {
-					console.log("Wow!");
+				if (createReq.status != 200) {
+					if (createReq.status == 400) {
+						const error = (await createReq.json()) as ErrorLayout;
+
+						if (error.transaction == AuthenticationErrors.EMAIL_IN_USE) {
+							// TODO handle this pls
+							return console.log("EMAIL IN USE");
+						}
+
+						if (error.transaction == AuthenticationErrors.FIELDS_MISSING) {
+							// TODO handle this pls
+							return console.log("FIELDS MISSING");
+						}
+					}
+
+					return console.log("SOMETHING WENT WRONG");
 				}
+
+				// Account has been created successfully, now you need to login
+
+				const loginReq = await fetch("/api/users/login", {
+					method: "POST",
+					headers: {
+						contentType: "application/json",
+					},
+					body: JSON.stringify({
+						email,
+						password,
+					}),
+				});
+
+				if (loginReq.status != 200) {
+					// TODO handle this pls
+					return console.log("LOGIN FAILED");
+				}
+
+				const { token } = await loginReq.json();
+
+				const ls = window.localStorage;
+
+				ls.setItem("token", token);
+
+				// Account keys need to be created now
+				// Keys are generated on-device, in the current browser that the user is using and stored forever.
+
+				// First generate the base key, this is the key responsible for encrypting the keys to all the user's notebooks.
+
+				const baseKey = window.crypto.getRandomValues(new Uint8Array(1024));
+				let baseKeyBytes = "";
+
+				for (let i = 0; i < baseKey.length; i++) {
+					baseKeyBytes += String.fromCharCode(baseKey[i]);
+				}
+
+				console.log(baseKeyBytes);
+
+				// Now generate the account key pairs
+
+				const { publicKey, privateKey, revocationCertificate } =
+					await generateKey({
+						type: "ecc",
+						curve: "curve25519",
+						userIDs: [
+							{
+								name: fullName,
+								email,
+							},
+						],
+						passphrase: password,
+						format: "armored",
+					});
+
+				console.log(publicKey, privateKey);
+
+				const readPublicKey = await readKey({
+					armoredKey: publicKey,
+				});
+
+				const encryptedBaseKey = await encrypt({
+					message: await createMessage({ text: baseKeyBytes }),
+					encryptionKeys: readPublicKey,
+				});
+
+				console.log(encryptedBaseKey);
 			}}
 		>
 			<div className="modal">
@@ -97,8 +187,6 @@ const SignUp = () => {
 					<p>Create</p>
 					<ArrowRight size={16} />
 				</button>
-
-				<KeyGenerator />
 			</div>
 		</form>
 	);
