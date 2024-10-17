@@ -71,7 +71,7 @@ const SignUp = () => {
 					}),
 				});
 
-				if (createReq.status != 200) {
+				if (!createReq.ok) {
 					if (createReq.status == 400) {
 						const error = (await createReq.json()) as ErrorLayout;
 
@@ -143,8 +143,6 @@ const SignUp = () => {
 						format: "armored",
 					});
 
-				console.log(publicKey, privateKey);
-
 				const readPublicKey = await readKey({
 					armoredKey: publicKey,
 				});
@@ -154,7 +152,64 @@ const SignUp = () => {
 					encryptionKeys: readPublicKey,
 				});
 
-				console.log(encryptedBaseKey);
+				// Store the base key in the local storage
+				ls.setItem("bk", btoa(baseKeyBytes));
+
+				// Now send the keys to the database
+
+				const provisionKeys = await fetch("/api/users/keys/provision", {
+					method: "POST",
+					headers: {
+						authorization: token,
+						contentType: "application/json",
+					},
+					body: JSON.stringify({
+						publicKey,
+						privateKey,
+						baseKey: encryptedBaseKey,
+					}),
+				});
+
+				if (provisionKeys.status != 200) {
+					// TODO handle this pls
+					return console.log("KEYS PROVISION FAILED");
+				}
+
+				// Generate keys for the first notebook.
+				const notebookKeys = await generateKey({
+					type: "ecc",
+					curve: "curve25519",
+					userIDs: [
+						{
+							name: fullName,
+							email,
+						},
+					],
+					passphrase: baseKeyBytes,
+					format: "armored",
+				});
+
+				const notebookPublicKey = notebookKeys.publicKey;
+				const notebookPrivateKey = notebookKeys.privateKey;
+
+				const notebookNameFormatted = `${fullName
+					.split(" ")[0]
+					.trim()}'s Notebook`;
+
+				const createNotebook = await fetch("/api/notebook/create", {
+					method: "POST",
+					headers: {
+						authorization: token,
+						contentType: "application/json",
+					},
+					body: JSON.stringify({
+						name: notebookNameFormatted,
+						keys: {
+							publicKey: notebookPublicKey,
+							privateKey: notebookPrivateKey,
+						},
+					}),
+				});
 			}}
 		>
 			<div className="modal">
