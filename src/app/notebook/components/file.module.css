@@ -1,0 +1,30 @@
+.container {
+	display: flex;
+	padding: 8px;
+	box-sizing: border-box;
+	gap: 8px;
+	align-items: center;
+	border-radius: 8px;
+}
+
+.container:hover {
+	background-color: var(--hover-colour);
+}
+
+.container:active {
+	background-color: var(--active-colour);
+}
+
+.input {
+	background-color: rgba(0, 0, 0, 0) !important;
+	border: 0px;
+	height: 100%;
+	margin: 0;
+	outline: 0;
+
+	padding: 0 !important;
+	box-sizing: border-box;
+	font-size: 16px;
+	border-radius: 0 !important;
+	font-family: var(--font-inter) !important;
+}

@@ -25,13 +25,13 @@ model Tokens {
   token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [userId], references: [id])
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 }
 
 model KeyStore {
   id         String @id @default(uuid())
-  User       User   @relation(fields: [userId], references: [id])
+  User       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
   privateKey String
   publicKey  String
@@ -43,9 +43,9 @@ model KeyStore {
 model UserNotebook {
   id           String                   @id @default(uuid())
   relationship UserNotebookRelationship @default(VIEWER)
-  User         User?                    @relation(fields: [userId], references: [id])
+  User         User?                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String?
-  Notebook     Notebook?                @relation(fields: [notebookId], references: [id])
+  Notebook     Notebook?                @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   notebookId   String?
 }
 
@@ -71,21 +71,23 @@ model NotebookKey {
   privateKey String
   publicKey  String
 
-  Notebook   Notebook? @relation(fields: [notebookId], references: [id])
+  Notebook   Notebook? @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   notebookId String?
 
   // If the client can generate the same code, it can have access to the raw data of the notebook.
-  challenge          String
-  challengePlainText String
+  challenge          String?
+  challengePlainText String?
 }
 
 model NotebookFolder {
   id String @id @default(uuid())
 
-  notebook   Notebook? @relation(fields: [notebookId], references: [id])
+  name String
+
+  notebook   Notebook? @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   notebookId String?
 
-  parent   NotebookFolder? @relation(name: "FolderHierarchy", fields: [parentId], references: [id])
+  parent   NotebookFolder? @relation(name: "FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   parentId String?
 
   // Children and files
@@ -98,8 +100,10 @@ model NotebookFolder {
 
 model NotebookFile {
   id               String         @id @default(uuid())
-  parent           NotebookFolder @relation(fields: [notebookFolderId], references: [id])
+  parent           NotebookFolder @relation(fields: [notebookFolderId], references: [id], onDelete: Cascade)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   notebookFolderId String
+  name             String
+  data             String?
 }

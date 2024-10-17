@@ -2,6 +2,9 @@
 	--page-colour: rgba(255, 255, 255, 1);
 	--sidebar-colour: rgba(247, 247, 247, 1);
 	--separator-colour: rgba(0, 0, 0, 0.1);
+	--hover-colour: rgba(0, 0, 0, 0.04);
+
+	--active-colour: rgba(0, 0, 0, 0.07);
 }
 
 body,
@@ -41,12 +44,12 @@ button,
 
 button:hover,
 .dropdown:hover {
-	background-color: rgba(0, 0, 0, 0.04);
+	background-color: var(--hover-colour);
 }
 
 button:active,
 .dropdown:active {
-	background-color: rgba(0, 0, 0, 0.07);
+	background-color: var(--active-colour);
 }
 
 .modal {
