@@ -9,7 +9,8 @@ import { Folder } from "./folder";
 export const LeftSidebar = ({ id }: { id: string }) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentNotebook, setCurrentNotebook] = useState("Ceccun Notebook");
-	const [selectedFolder, setSelectedFolder] = useState("root");
+	const [selectedFolder, setSelectedFolder] = useState("");
+	const [rootFolderId, setRootFolderId] = useState("");
 	const [inCreateMode, setInCreateMode] = useState(false);
 
 	useEffect(() => {
@@ -31,8 +32,12 @@ export const LeftSidebar = ({ id }: { id: string }) => {
 				return;
 			}
 
-			const { name } = await getInformation.json();
+			const { name, rootFolder } = await getInformation.json();
+
+			const { id: string } = rootFolder[0];
+
 			setCurrentNotebook(name);
+			setRootFolderId(string);
 			setIsLoading(false);
 		})();
 	}, []);
@@ -58,15 +63,17 @@ export const LeftSidebar = ({ id }: { id: string }) => {
 				Notebook across all your devices.
 			</Alert>
 
-			<Folder
-				path="root"
-				notebookID={id}
-				root={true}
-				setSelectedFolder={setSelectedFolder}
-				selectedFolder={selectedFolder}
-				inCreateMode={inCreateMode}
-				setInCreateMode={setInCreateMode}
-			/>
+			{!isLoading && (
+				<Folder
+					path={rootFolderId}
+					notebookID={id}
+					root={true}
+					setSelectedFolder={setSelectedFolder}
+					selectedFolder={selectedFolder}
+					inCreateMode={inCreateMode}
+					setInCreateMode={setInCreateMode}
+				/>
+			)}
 		</section>
 	);
 };

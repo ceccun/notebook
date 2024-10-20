@@ -1,16 +1,12 @@
-import { AuthenticationErrors, NotebookErrors } from "@/const/errors";
-import { db } from "@/libs/db";
-import { verifyToken } from "@/libs/token";
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/libs/db";
+import { getUserIdFromToken, verifyToken } from "@/libs/token";
+import { AuthenticationErrors, NotebookErrors } from "@/const/errors";
 
-export const POST = async (
-	req: NextRequest,
-	{
-		params,
-	}: {
-		params: {
-			notebook: string;
-		};
+export const GET = async (
+	req: Request,
+	params: {
+		notebook: string;
 	}
 ) => {
 	const { notebook } = params;
@@ -20,7 +16,6 @@ export const POST = async (
 		return new NextResponse(
 			JSON.stringify({
 				error: "Token is missing.",
-				transaction: AuthenticationErrors.TOKEN_MISSING,
 			}),
 			{
 				status: 403,
@@ -29,7 +24,6 @@ export const POST = async (
 	}
 
 	// Check if the token is real
-
 	const tokenCheck = await verifyToken(token);
 
 	if (!tokenCheck) {
@@ -44,37 +38,42 @@ export const POST = async (
 		);
 	}
 
-	// Grab the body of the request
-	const { name, content, path } = await req.json();
+	// Get the user's ID
+	const userID = getUserIdFromToken(token);
 
-	const createFile = await db.notebookFile.create({
-		data: {
-			name,
-			data: content,
-			parent: {
-				connect: {
-					id: path,
+	// Get the keys from the database
+
+	const keys = await db.notebookKey.findFirst({
+		where: {
+			Notebook: {
+				id: notebook,
+				users: {
+					some: {
+						User: {
+							id: userID,
+						},
+					},
 				},
 			},
 		},
+		select: {
+			id: true,
+			privateKey: true,
+			publicKey: true,
+		},
 	});
 
-	if (!createFile) {
+	if (!keys) {
 		return new NextResponse(
 			JSON.stringify({
-				error: "Failed to create file.",
+				error: "Keys not found.",
 				transaction: NotebookErrors.GENERIC_ERROR,
 			}),
 			{
-				status: 500,
+				status: 404,
 			}
 		);
 	}
 
-	return new NextResponse(
-		JSON.stringify({
-			success: true,
-			id: createFile.id,
-		})
-	);
+	return new NextResponse(JSON.stringify(keys));
 };

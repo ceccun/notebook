@@ -107,45 +107,43 @@ export const GET = async (
 	// 	status: 200,
 	// });
 
-	if (requestedFolder === "root") {
-		const rootFolder = await db.notebookFolder.findFirst({
-			where: {
-				notebook: {
-					id: notebookID,
-				},
-				name: "/",
+	const rootFolder = await db.notebookFolder.findFirst({
+		where: {
+			notebook: {
+				id: notebookID,
 			},
-			select: {
-				children: {
-					select: {
-						id: true,
-						name: true,
-					},
-				},
-				files: {
-					select: {
-						id: true,
-						name: true,
-					},
+			id: requestedFolder,
+		},
+		select: {
+			children: {
+				select: {
+					id: true,
+					name: true,
 				},
 			},
-		});
+			files: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
+		},
+	});
 
-		if (!rootFolder) {
-			return new NextResponse(
-				JSON.stringify({
-					error:
-						"Root folder not found. This typically means your notebook is corrupt.",
-					transaction: NotebookErrors.GENERIC_ERROR,
-				}),
-				{
-					status: 404,
-				}
-			);
-		}
-
-		return new NextResponse(JSON.stringify(rootFolder), {
-			status: 200,
-		});
+	if (!rootFolder) {
+		return new NextResponse(
+			JSON.stringify({
+				error:
+					"Root folder not found. This typically means your notebook is corrupt.",
+				transaction: NotebookErrors.GENERIC_ERROR,
+			}),
+			{
+				status: 404,
+			}
+		);
 	}
+
+	return new NextResponse(JSON.stringify(rootFolder), {
+		status: 200,
+	});
 };

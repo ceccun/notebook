@@ -47,6 +47,12 @@ export const GET = async (
 			id: true,
 			name: true,
 			users: true,
+			rootFolder: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
 		},
 	});
 

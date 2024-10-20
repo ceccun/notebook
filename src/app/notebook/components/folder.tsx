@@ -19,7 +19,7 @@ export const Folder = ({
 	setInCreateMode: (mode: boolean) => void;
 }) => {
 	const [folders, setFolders] = useState<string[]>([]);
-	const [files, setFiles] = useState<string[]>([]);
+	const [files, setFiles] = useState<{ id: string; name: string }[]>([]);
 
 	useEffect(() => {
 		if (root) {
@@ -59,13 +59,24 @@ export const Folder = ({
 
 	return (
 		<div>
-			<File name="test" isEncrypted={false} />
+			{files.map((file, key) => (
+				<File
+					name={file.name}
+					id={file.id}
+					isEncrypted={true}
+					key={key}
+					parentFolder={path}
+				/>
+			))}
 			{inCreateMode && selectedFolder === path && (
 				<File
 					name=""
 					isEncrypted={false}
 					create={true}
 					setInCreateMode={setInCreateMode}
+					parentFolder={path}
+					siblings={files}
+					setSiblings={setFiles}
 				/>
 			)}
 		</div>
